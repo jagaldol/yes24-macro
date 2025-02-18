@@ -11,9 +11,10 @@ import pyscreeze
 class TicketingState(enum.Enum):
     INIT = 0
     DATE_SELECTION = 1
-    NEXT_PAGE = 2
-    STANDING_SELECTION = 3
-    FINISH = 4
+    LOADING = 2
+    NEXT_PAGE = 3
+    STANDING_SELECTION = 4
+    FINISH = 5
 
 
 terminate = False
@@ -101,6 +102,7 @@ def main():
             break
 
     state = TicketingState.INIT
+    retry = 0
     while True:
         if terminate:
             print("프로그램을 종료합니다.")
@@ -121,16 +123,27 @@ def main():
             # 날짜 선택 후 다음 단계로
             if locate_and_click("targets/next.png", confidence=0.8):
                 print("다음 페이지 클릭")
-                state = TicketingState.NEXT_PAGE
+                state = TicketingState.LOADING
             else:
                 # alert가 뜰 수도 있으니 alert 처리 후 새로고침 후 INIT 상태로 복귀
                 refresh_and_reset()
                 state = TicketingState.INIT
+        elif state == TicketingState.LOADING:
+            if retry >= 50:
+                print("로딩이 너무 오래 걸려서 새로고침합니다.")
+                refresh_and_reset()
+                state = TicketingState.INIT
+                retry = 0
+            if locate_and_click("targets/load_fin.png", confidence=0.8):
+                state = TicketingState.NEXT_PAGE
+                retry = 0
+            else:
+                time.sleep(0.1)
+                retry += 1
 
         elif state == TicketingState.NEXT_PAGE:
             # 자리 선택 단계
             # info 영역은 항상 나타나므로 먼저 info 영역을 감지합니다.
-            time.sleep(0.1)
             # info 영역 안에 포함된 standing 이미지는 무시하고,
             # info 영역 밖에 있는 standing 이미지를 클릭합니다.
             if locate_and_click_standing("targets/standing.png", confidence=0.9):
