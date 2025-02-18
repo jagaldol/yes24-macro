@@ -14,8 +14,10 @@ class TicketingState(enum.Enum):
     DATE_SELECTION = 1
     LOADING = 2
     NEXT_PAGE = 3
-    STANDING_SELECTION = 4
-    FINISH = 5
+    NEED_REFRESH = 4
+    FOCUS_DATE = 5
+    STANDING_SELECTION = 6
+    FINISH = 7
 
 
 terminate = False
@@ -140,8 +142,9 @@ def main():
                 # alert가 뜰 수도 있으니 alert 처리 후 새로고침 후 INIT 상태로 복귀
                 refresh_and_reset()
                 state = TicketingState.INIT
+
         elif state == TicketingState.LOADING:
-            if retry >= 50:
+            if retry >= 200:
                 print("로딩이 너무 오래 걸려서 새로고침합니다.")
                 refresh_and_reset()
                 state = TicketingState.INIT
@@ -150,7 +153,7 @@ def main():
                 state = TicketingState.NEXT_PAGE
                 retry = 0
             else:
-                time.sleep(0.1)
+                time.sleep(0.005)
                 retry += 1
 
         elif state == TicketingState.NEXT_PAGE:
@@ -161,12 +164,19 @@ def main():
             if locate_and_click_standing("targets/standing.png", confidence=0.9):
                 print("좌석(standing) 클릭")
                 state = TicketingState.STANDING_SELECTION
-            elif locate_and_click("targets/back.png", confidence=0.9):
-                print("뒤로가기(back) 클릭")
-                state = TicketingState.INIT
+            else:
+                state = TicketingState.NEED_REFRESH
+
+        elif state == TicketingState.NEED_REFRESH:
+            if locate_and_click("targets/date_selector.png", confidence=0.8):
+                pyautogui.click()
+                print("회차 포커스")
+                keyboard.press_and_release("left")
+                keyboard.press_and_release("right")
+                print("새로고침")
+                state = TicketingState.LOADING
             else:
                 refresh_and_reset()
-                state = TicketingState.INIT
 
         elif state == TicketingState.STANDING_SELECTION:
             # 좌석 선택 후 결제 혹은 마무리 단계로 전환
@@ -179,10 +189,6 @@ def main():
             winsound.Beep(1000, 3000)
             break
 
-        time.sleep(0.1)
-
 
 if __name__ == "__main__":
-    # 화면이 준비될 시간을 주기 위해 잠시 대기 (예: 2초)
-    time.sleep(2)
     main()
