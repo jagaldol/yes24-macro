@@ -1,4 +1,5 @@
 import enum
+import json
 import time
 import winsound
 
@@ -57,8 +58,19 @@ def locate_and_click_standing(image_path, confidence=0.9):
     if not candidates:
         return False
 
-    # 고정 exclusion zone 좌표 (left, top, width, height)
-    exclusion_zone = (746, 57, 224, 636)
+    try:
+        with open("info_location.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("저장된 위치 정보가 없습니다.")
+        exit()
+
+    exclusion_zone = (
+        data["x"],  # left
+        data["y"],  # top
+        data["width"],  # width
+        data["height"],  # height
+    )
 
     for candidate in candidates:
         # candidate는 pyautogui.Box 객체 (left, top, width, height)
