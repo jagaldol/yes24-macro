@@ -1,5 +1,6 @@
 import enum
 import time
+import winsound
 
 import keyboard
 import pyautogui
@@ -150,6 +151,7 @@ def main():
 
         elif state == TicketingState.FINISH:
             print("티켓팅 완료")
+            winsound.Beep(1000, 3000)
             break
 
         time.sleep(0.1)
