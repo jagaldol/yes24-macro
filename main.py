@@ -5,7 +5,6 @@ import winsound
 
 import keyboard
 import pyautogui
-import pyscreeze
 
 
 # 상태를 열거형(enum)으로 정의
@@ -21,6 +20,21 @@ class TicketingState(enum.Enum):
 
 
 terminate = False
+
+try:
+    with open("select_location.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+except FileNotFoundError:
+    print("저장된 위치 정보가 없습니다.")
+    exit()
+
+select_box_region = (
+    data["x"],  # left
+    data["y"],  # top
+    data["width"],  # width
+    data["height"],  # height
+)
 
 
 def on_press_terminate_key(e):
@@ -53,44 +67,14 @@ def locate_and_click_standing(image_path, confidence=0.9):
     완전히 포함된 후보는 무시하고, 영역 밖의 첫 번째 후보를 클릭하는 함수.
     """
     try:
-        candidates = list(pyautogui.locateAllOnScreen(image_path, confidence=confidence))
-    except pyscreeze.ImageNotFoundException:
+        location = pyautogui.locateOnScreen(image_path, region=select_box_region, confidence=confidence)
+    except pyautogui.ImageNotFoundException:
         return False
 
-    if not candidates:
-        return False
-
-    try:
-        with open("info_location.json", "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        print("저장된 위치 정보가 없습니다.")
-        exit()
-
-    exclusion_zone = (
-        data["x"],  # left
-        data["y"],  # top
-        data["width"],  # width
-        data["height"],  # height
-    )
-
-    for candidate in candidates:
-        # candidate는 pyautogui.Box 객체 (left, top, width, height)
-        # candidate가 exclusion_zone 안에 완전히 포함되는지 체크
-        if (
-            candidate.left >= exclusion_zone[0]
-            and candidate.top >= exclusion_zone[1]
-            and candidate.left + candidate.width <= exclusion_zone[0] + exclusion_zone[2]
-            and candidate.top + candidate.height <= exclusion_zone[1] + exclusion_zone[3]
-        ):
-            # exclusion_zone 내에 있으므로 무시
-            continue
-
-        # exclusion_zone 밖에 있는 후보를 발견하면 클릭
-        center_point = pyautogui.center(candidate)
+    if location:
+        center_point = pyautogui.center(location)
         pyautogui.click(center_point)
         return True
-
     return False
 
 

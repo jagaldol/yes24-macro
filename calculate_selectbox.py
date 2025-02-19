@@ -14,7 +14,7 @@ def main():
             break
 
     try:
-        location = pyautogui.locateOnScreen("targets/info.png", confidence=0.8)
+        location = pyautogui.locateOnScreen("targets/select_box.png", confidence=0.8)
     except pyautogui.ImageNotFoundException:
         print("이미지를 찾지 못했습니다.")
         return
@@ -29,7 +29,7 @@ def main():
             "width": int(location[2]),
             "height": int(location[3]),
         }
-        with open("info_location.json", "w", encoding="utf-8") as f:
+        with open("select_location.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
 
