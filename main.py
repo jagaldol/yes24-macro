@@ -82,6 +82,9 @@ def refresh_and_reset():
     """alert를 닫기 위해 엔터키 누르고, 새로고침(F5) 실행 후 초기 상태로 리셋"""
     print("대상 이미지를 찾지 못했거나 info 영역 내의 target은 무시합니다.")
     print("alert 처리 후 새로고침(F5) 합니다.")
+    if locate_and_click("targets/alert_confirm.png", confidence=0.8):
+        print("alert 확인 클릭")
+        time.sleep(0.5)
     pyautogui.press("enter")  # alert 닫기용 엔터키
     time.sleep(0.2)  # alert 처리 시간 대기
     pyautogui.click()
@@ -105,9 +108,6 @@ def main():
         if terminate:
             print("프로그램을 종료합니다.")
             break
-        if locate_and_click("targets/alert_confirm.png", confidence=0.8):
-            print("alert 확인 클릭")
-            time.sleep(0.5)
 
         if state == TicketingState.INIT:
             # 초기 상태: 날짜 선택 화면 대기
