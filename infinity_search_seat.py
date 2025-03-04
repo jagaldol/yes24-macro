@@ -15,7 +15,7 @@ class State(enum.Enum):
     SETUP = 2
 
 
-state = State.STOPPED
+state = State.SETUP
 
 try:
     with open("select_location.json", "r", encoding="utf-8") as f:
